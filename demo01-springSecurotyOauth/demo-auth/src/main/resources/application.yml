@@ -1,0 +1,36 @@
+server:
+  port: 9001
+spring:
+  application:
+    name: auth
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:7001/eureka
+
+feign:
+  hystrix:
+    enabled: true
+#hystrix 配置(默认使用信号量隔离的配置)
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 10000
+          strategy: SEMAPHORE
+
+auth:
+  ttl: 3600  #token存储到redis的过期时间
+  clientId: changgou
+  clientSecret: 123456
+  cookieDomain: localhost
+  cookieMaxAge: -1
+encrypt:
+  key-store:
+    location: classpath:/changgou.jks
+    secret: changgou    # keypass密码 秘钥密码
+    alias: changgou
+    password: changgou  # keystore的密码 秘钥库密码
