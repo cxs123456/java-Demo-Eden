@@ -15,7 +15,7 @@ public class FeignOauth2RequestInterceptor implements RequestInterceptor {
 
     @Override
     public void apply(RequestTemplate requestTemplate) {
-        //创建令牌信息
+        //创建令牌信息，bearer授权访问
         String token ="Bearer "+ JwtToken.adminJwt();
         //将令牌添加到头文件中
         requestTemplate.header("Authorization",token);

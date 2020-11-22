@@ -41,5 +41,10 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
     </dependency>
+    <!-- 网关不加这个jar，否则任何请求都会401 Unauthorized，应为网关没配置资源服务-->
+    <!--<dependency>-->
+      <!--<groupId>org.springframework.cloud</groupId>-->
+      <!--<artifactId>spring-cloud-starter-oauth2</artifactId>-->
+    <!--</dependency>-->
   </dependencies>
 </project>

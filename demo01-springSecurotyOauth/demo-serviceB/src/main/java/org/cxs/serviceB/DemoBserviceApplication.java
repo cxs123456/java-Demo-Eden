@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableEurekaClient
 @RestController
 @RequestMapping("/demo")
-public class DemoApplication {
+public class DemoBserviceApplication {
     public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
+        SpringApplication.run(DemoBserviceApplication.class, args);
     }
 
     @GetMapping("/hello")

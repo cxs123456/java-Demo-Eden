@@ -26,6 +26,7 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers(
                 "/user/login",
                 "/user/logout");
+        // 默认不拦截/token/**下的路径
     }
 
     /****
@@ -43,6 +44,7 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()    //限制基于Request请求访问
                 .anyRequest()
                 .authenticated();       //其他请求都需要经过验证
+        // 默认不拦截/token/**下的路径，下面不必配置
         // http.antMatcher("/oauth/**").authorizeRequests().antMatchers("/oauth/**").permitAll().and().csrf().disable();
     }
 

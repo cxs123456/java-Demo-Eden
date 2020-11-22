@@ -1,7 +1,5 @@
 package org.cxs.filter;
 
-import io.jsonwebtoken.Claims;
-import org.cxs.utils.JwtUtil;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +30,9 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
         // 获取请求url
         String path = request.getURI().getPath();
         // 判断是否是登录的地址
-        if (path.startsWith("/auth/login")) {
+        if (path.startsWith("/auth/user/login")) {
+            // 可以直接不拦截 认证服务的 /auth/token 相关接口，改接口是oauth2的token接口
+            //if (StringUtils.startsWithAny(path, "/auth/user/login","/auth/auth/token")){
             //是就放行
             return chain.filter(exchange);
         }
@@ -53,7 +53,7 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
                 return response.setComplete();
             }
             token = cookie.getValue();
-            // 将cookie存入请求头
+            // 将cookie存入请求头，构造 bearer授权访问
             token = "bearer " + token;
             request.mutate().header(AUTHORIZE_TOKEN, token);
         }
@@ -63,17 +63,17 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             return response.setComplete();
         }
-
-        // 4、token存在，需要解析token
-        try {
-            // 解析成功
-            Claims claims = JwtUtil.parseJWT(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            // 解析失败
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);    // 设置响应状态码
-            return response.setComplete();
-        }
+        // z.减轻网关服务压力，不解析token了，交给资源服务解析（所有资源服务都有public.key）
+//        // 4、token存在，需要解析token
+//        try {
+//            // 解析成功
+//            Claims claims = JwtUtil.parseJWT(token);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            // 解析失败
+//            response.setStatusCode(HttpStatus.UNAUTHORIZED);    // 设置响应状态码
+//            return response.setComplete();
+//        }
 
         //放行
         return chain.filter(exchange);

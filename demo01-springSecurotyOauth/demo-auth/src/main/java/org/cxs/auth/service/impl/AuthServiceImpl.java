@@ -12,6 +12,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.util.Base64;
 import java.util.Map;
 
@@ -54,7 +55,15 @@ public class AuthServiceImpl implements AuthService {
         body.set("username", username);
         body.set("password", password);
         header.set("Authorization", "Basic " + getAuthorization(clientId, clientSecret));
-        ResponseEntity<Map> exchange = restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(body, header), Map.class);
+
+        ResponseEntity<Map> exchange = null;
+        try {
+            // 用户名或密码错误，这里会出现异常
+            exchange = restTemplate.exchange(URI.create(url), HttpMethod.POST, new HttpEntity<>(body, header), Map.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
         // 将exchange数据封装到AuthToken里
         AuthToken authToken = new AuthToken();
         authToken.setAccessToken(exchange.getBody().get("access_token").toString());

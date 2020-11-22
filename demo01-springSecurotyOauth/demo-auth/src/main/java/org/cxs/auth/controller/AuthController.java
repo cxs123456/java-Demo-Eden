@@ -39,6 +39,14 @@ public class AuthController {
     @Value("${auth.cookieMaxAge}")
     private Integer cookieMaxAge;
 
+    /**
+     * 可以直接 调用 /oauth/token，不必通过login控制器
+     * @param response
+     * @param request
+     * @param username
+     * @param password
+     * @return
+     */
     @PostMapping("/login")
     public Result login(HttpServletResponse response, HttpServletRequest request,
                         @RequestParam("username") String username,
@@ -55,7 +63,10 @@ public class AuthController {
 //                       false); // 是否用http
             CookieTools.setCookie(request, response, "Authorization", authToken.getAccessToken());
             CookieTools.setCookie(request, response, "cuname", username);
+            return new Result(true, StatusCode.OK, "登录成功", authToken);
+        }else {
+            return new Result(true, StatusCode.LOGINERROR, "用户名或密码错误");
         }
-        return new Result(true, StatusCode.OK, "登录成功", authToken);
+
     }
 }
