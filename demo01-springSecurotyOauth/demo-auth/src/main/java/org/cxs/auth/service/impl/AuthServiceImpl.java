@@ -3,16 +3,13 @@ package org.cxs.auth.service.impl;
 import org.cxs.auth.service.AuthService;
 import org.cxs.auth.util.AuthToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
 import java.util.Base64;
 import java.util.Map;
 
@@ -24,8 +21,8 @@ import java.util.Map;
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    @Autowired
-    private LoadBalancerClient loadBalancerClient;
+   /* @Autowired
+    private LoadBalancerClient loadBalancerClient;*/
 
     @Autowired
     private RestTemplate restTemplate;
@@ -58,8 +55,10 @@ public class AuthServiceImpl implements AuthService {
 
         ResponseEntity<Map> exchange = null;
         try {
-            // 用户名或密码错误，这里会出现异常
-            exchange = restTemplate.exchange(URI.create(url), HttpMethod.POST, new HttpEntity<>(body, header), Map.class);
+            // 用户名或密码错误，这里会出现异常\，这里会发送2个请求
+            //HttpHeaders
+            exchange = restTemplate.postForEntity(url,new HttpEntity<>(body, header), Map.class);
+            // exchange = restTemplate.exchange(URI.create(url), HttpMethod.POST, new HttpEntity<>(body, header), Map.class);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
