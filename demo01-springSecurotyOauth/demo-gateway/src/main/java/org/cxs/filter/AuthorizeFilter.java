@@ -75,6 +75,9 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
 //            return response.setComplete();
 //        }
 
+
+        // z.判断令牌是否过期，以及调用刷新令牌重新生成令牌放到 response里面
+
         //放行
         return chain.filter(exchange);
 

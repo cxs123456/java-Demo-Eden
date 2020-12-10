@@ -53,10 +53,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (StringUtils.isEmpty(username)) {
             return null;
         }
-        // 调用feign
-        //Result<com.changgou.user.pojo.User> user = userFeign.findById(username);
         // 静态指定密码，以后改成通过name到数据库取
         String pwd = new BCryptPasswordEncoder().encode("888888");
+        // 调用feign
+        //Result<com.changgou.user.pojo.User> user = userFeign.findById(username);
+
         //创建User对象
         String permissions = "admin";
         //UserJwt userDetails = new UserJwt(username,user.getData().getPassword(),AuthorityUtils.commaSeparatedStringToAuthorityList(permissions));
