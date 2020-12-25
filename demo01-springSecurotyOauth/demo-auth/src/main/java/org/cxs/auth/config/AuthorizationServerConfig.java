@@ -94,7 +94,7 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
         endpoints.tokenStore(tokenStore);//令牌存储
 
         endpoints.accessTokenConverter(jwtAccessTokenConverter);
-        endpoints.userDetailsService(userDetailsService);     //用户信息service
+        // endpoints.userDetailsService(userDetailsService);     //用户信息service
 
         endpoints.allowedTokenEndpointRequestMethods(HttpMethod.GET,HttpMethod.POST);
         // 可以给token多添加数据
