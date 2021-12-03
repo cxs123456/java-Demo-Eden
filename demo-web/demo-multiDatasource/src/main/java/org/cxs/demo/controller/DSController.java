@@ -1,8 +1,8 @@
 package org.cxs.demo.controller;
 
+import com.alibaba.druid.DbType;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.sql.SQLUtils;
-import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.parser.SQLParserUtils;
 import com.alibaba.druid.sql.parser.SQLType;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
@@ -47,9 +47,16 @@ public class DSController {
     private DynamicDatasourceInstanceMapper instanceMapper;
 
     @GetMapping("list")
-    public Set<String> now() {
+    public Set<String> now() throws InterruptedException {
         DynamicRoutingDataSource ds = (DynamicRoutingDataSource) dataSource;
         DynamicDatasourceInstance dynamicDatasourceInstance = instanceMapper.selectById(1);
+
+        List<Map<String, Object>> maps0 = jdbcTemplate.queryForList("select database()");
+        System.out.println(Thread.currentThread().getName() + " 000当前使用的数据库： " + maps0);
+        Thread.sleep(2000);
+        List<Map<String, Object>> maps1 = jdbcTemplate.queryForList("select database()");
+        System.out.println(Thread.currentThread().getName() + " 111当前使用的数据库： " + maps0);
+
         return ds.getDataSources().keySet();
     }
 
@@ -101,12 +108,13 @@ public class DSController {
         String name = realDataSource.getName();
         System.out.println("当前数据源类型：" + dbType + ", 当前数据源名称：" + name);
 
+
         // TODO 执行sql....
         // 查询当前使用的数据库
         List<Map<String, Object>> maps = jdbcTemplate.queryForList("select database()");
         System.out.println("当前使用的数据库： " + maps);
         // 1.判断sql语法是否正确
-        SQLExpr sqlExpr = SQLUtils.toSQLExpr(sql);
+        String formatSql = SQLUtils.format(sql, DbType.other);
         // 2.获取 sql 语句 是哪种类型 select,insert,delete,update
         SQLType sqlType = SQLParserUtils.getSQLTypeV2(sql, null);
         // 3.根据类型执行sql
@@ -127,27 +135,32 @@ public class DSController {
     public void multiExec() {
         // 数据源0  默认数据源 db
         List<Map<String, Object>> maps0 = jdbcTemplate.queryForList("select database()");
-        System.out.println("000当前使用的数据库： " + maps0);
+        System.out.println(Thread.currentThread().getName() + " 000当前使用的数据库： " + maps0);
 
         try {
             // 数据源1 test
             DynamicDataSourceContextHolder.push("test");
             List<Map<String, Object>> maps1 = jdbcTemplate.queryForList("select database()");
-            System.out.println("111当前使用的数据库： " + maps1);
+            System.out.println(Thread.currentThread().getName() + " 111当前使用的数据库： " + maps1);
+            Thread.sleep(5000);
+
             DynamicDataSourceContextHolder.poll();
 
 
             // 数据源2 pinyougoudb
             DynamicDataSourceContextHolder.push("pinyougoudb");
             List<Map<String, Object>> maps2 = jdbcTemplate.queryForList("select database()");
-            System.out.println("222当前使用的数据库： " + maps2);
+            System.out.println(Thread.currentThread().getName() + " 222当前使用的数据库： " + maps2);
+            Thread.sleep(2000);
             DynamicDataSourceContextHolder.poll();
 
 
             // 数据源3 默认数据源 db
             List<Map<String, Object>> maps3 = jdbcTemplate.queryForList("select database()");
-            System.out.println("333当前使用的数据库： " + maps3);
+            System.out.println(Thread.currentThread().getName() + " 333当前使用的数据库： " + maps3);
 
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         } finally {
             DynamicDataSourceContextHolder.clear();
         }

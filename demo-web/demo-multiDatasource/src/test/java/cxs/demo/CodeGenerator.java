@@ -35,7 +35,7 @@ public class CodeGenerator {
         System.out.println("projectPath = " + projectPath);
         String outputDir = projectPath + "/src/test/java";
         gc.setOutputDir(outputDir);
-        gc.setAuthor("chenxinsui");
+        gc.setAuthor("cxs");
         gc.setOpen(false);
         gc.setBaseResultMap(true);
         gc.setBaseColumnList(true);
