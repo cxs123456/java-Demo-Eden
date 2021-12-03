@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!--日志配置（如果配置apollo里面。则必须配置在application文件里面，否则将会读取不到！！！）-->
+    <springProperty name="appName" scope="context" source="spring.application.name" />
+
+    <!--读取配置中心的属性-->
+    <springProperty name="LOG_BASE" defaultValue="data/logs" scope="context" source="logging.base-dir" />
+    <springProperty name="SERVICE_INSTANCE_ID" defaultValue="0" scope="context" source="server.port" />
+
+    <property name="LOG_BACK_DIR" value="${LOG_BASE}/${appName}_${SERVICE_INSTANCE_ID}" />
+    <property name="log_format"
+        value="%d{yyyy-MM-dd HH:mm:ss.SSS} %level ${appName} [%X{X-B3-SpanId} | %X{X-B3-ParentSpanId} | %X{X-B3-TraceId}] %thread [%logger{36} %method %line] %m%n" />
+
+    <!-- 开发环境使用 打印在控制台-->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${log_format}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_BACK_DIR}/${appName}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_BACK_DIR}/${appName}.%d{yyyyMMddHH}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>512MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>50GB</totalSizeCap>
+        </rollingPolicy>
+        <append>true</append>
+
+        <!-- 日志文件的格式 -->
+        <encoder>
+            <pattern>
+                <pattern>
+                    {
+                    "timestamp":"%date{yyyy-MM-dd'T'HH:mm:ss.SSS}",
+                    "level":"%level",
+                    "msg":"${appName} [%X{X-B3-SpanId} | %X{X-B3-ParentSpanId} | %X{X-B3-TraceId}] %thread [%logger{36}
+                    %method %line] %m",
+                    "stacktrace": "%exception"
+                    }
+                </pattern>
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.springframework" level="WARN" />
+    <logger name="java.sql.Connection" level="INFO" />
+    <logger name="java.sql.ResultSet" level="INFO" />
+    <logger name="org.apache.zookeeper.ClientCnxn" level="WARN" />
+    <logger name="org.mybatis.spring.SqlSessionUtils" level="WARN" />
+
+    <springProfile name="!(test,prod)">
+        <root>
+            <level value="INFO" />
+            <appender-ref ref="STDOUT" />
+            <!--<appender-ref ref="RABBITMQLOG" />-->
+        </root>
+    </springProfile>
+
+    <springProfile name="test">
+        <root>
+            <level value="INFO" />
+            <appender-ref ref="STDOUT" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root>
+            <level value="INFO" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+
+</configuration>
