@@ -2,7 +2,7 @@
 
 ## 一、SpringSecurity
 
-Spring Security是一套安全框架，可以基于RBAC（基于角色的权限控制）对用户的访问权限进行控制，核心思想是通过一系列的过滤器链`filter chain`来进行拦截过滤。  
+Spring Security是一套安全框架，可以基于RBAC（基于角色的权限访问控制）对用户的访问权限进行控制，核心思想是通过一系列的过滤器链`filter chain`来进行拦截过滤。  
 最核心安全过滤器`FilterSecurityInterceptor`，通过`FilterInvocationSecurityMetadataSource`来进行资源权限的匹配，`AccessDecisionManager`来执行访问策略。
 
 ## 二、OAuth2
@@ -37,7 +37,7 @@ JWT全称为Json Web Token，jwt格式的token分为三部分：
 ## 有JWT为什么还要用OAuth2.0来做登入和权限认证
 
 OAUTH2.0是一种授权方式，一种流程规范。  
-JWT，是TOKEN的一种形式。
+JWT，是TOKEN的一种数据格式(服务端和客户端进行通信的传递安全可靠的信息的数据格式)。
 > 参考：
 > [深入理解Spring Cloud Security OAuth2及JWT](https://www.jianshu.com/p/cb886f995e86?utm_source=oschina-app)
 
@@ -47,8 +47,8 @@ JWT，是TOKEN的一种形式。
 
 **问题描述：**
 
-1. 客户端 post 请求 `/auth/login` 接口，再服务内部RestTemplate调用 `/oauth/token`，`UserDetailsService.loadUserByUsername(name)` 会被调用2次，第1次调用传参 name 为 clientId，第2次传参 name 为 客户端输入的 username。
-2. 如果客户端直接请求 `/oauth/token` 接口（按照oauth2的密码模式传参），只会调用1次，传参 name 为 客户端输入的 username。
+1. 客户端 post 请求 `/auth/login` 接口，再服务内部RestTemplate调用 `/oauth/token`，`UserDetailsService.loadUserByUsername(name)` 方法会被调用2次，第1次调用传参 name 为 clientId，第2次传参 name 为 客户端输入的 username。
+2. 如果客户端直接请求 `/oauth/token` 接口（按照oauth2的密码模式传参），`loadUserByUsername(name)`只会调用1次，传参 name 为 客户端输入的 username。
 
 > 原因：  
 > zzz
@@ -83,3 +83,19 @@ bearer 授权：`Authorization:Bearer token`
 > [spring官网Spring Boot and OAuth2](https://spring.io/guides/tutorials/spring-boot-oauth2/)  
 > [spring官网Spring Security OAuth](https://spring.io/projects/spring-security-oauth#learn)  
 > [github文档](https://github.com/spring-projects/spring-security/wiki/OAuth-2.0-Migration-Guide)  
+
+
+### 总结
+**授权码模式示例：微信认证的流程**  
+① 客户端（我们的web服务器）请求第三方授权，登录页面中微信/QQ图标  
+② 资源拥有者（微信用户）同意给客户端授权，客户端得到授权码   
+③ 客户端通过授权码，请求认证服务器申请令牌  
+④ 认证服务器向客户端响应令牌，认证服务器验证客户端请求的授权码，如果合法则向客户端签发令牌   
+⑤ 客户端携带令牌访问资源服务器的资源   
+⑥ 资源服务器返回资源，资源服务器校验令牌的合法性，如果合法则向用户响应资源信息内容。  
+
+**密码模式认证流程**  
+① 客户端（我们的web服务器）登录页面，要求 资源拥有者 （我们的用户）输入密码和用户名，进行登录  
+② 登录接口的url 默认是`/oauth/token`（无需自己开发，前端写死），该请求是向认证服务器申请令牌，按照密码模式的请求数据，   
+重点包含2个密码，1个是请求体的用户的 `username和password`，1个是请求头的 `http Basic认证 ` 中客户端应用的`clientId/clientSecret`。  
+④⑤⑥ 和授权码模式的业务逻辑一致。token的生成有`username和password`参与。返回的令牌由前端放入请求头cookie中下次请求。  

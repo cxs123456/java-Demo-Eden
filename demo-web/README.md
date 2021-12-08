@@ -4,7 +4,7 @@
 
 ## 1.Springboot Shiro /Spring Security 应用
 
-
+> [Spring Security认证与授权的原理（源码分析，超详细）](https://blog.csdn.net/weixin_44588495/article/details/105907312)
 
 ## 2.SpringBoot 项目i18n国际化错误码实现方案
 

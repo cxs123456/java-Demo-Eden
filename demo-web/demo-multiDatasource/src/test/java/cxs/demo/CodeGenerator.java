@@ -22,7 +22,7 @@ public class CodeGenerator {
 
     public static void main(String[] args) {
         // 指定配置
-        String[] tableNames = {"dynamic_datasource_instance"};
+        String[] tableNames = {"demo02"};
         String moduleName = null;
         String packageName = "cxs.demo.codegen";
 

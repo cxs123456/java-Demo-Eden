@@ -17,6 +17,8 @@
         <dynamic-datasource.version>3.4.1</dynamic-datasource.version>
         <mysql.version>8.0.11</mysql.version>
         <druid.version>1.2.5</druid.version>
+
+        <elasticsearch.version>7.4.2</elasticsearch.version>
     </properties>
 
     <dependencies>
@@ -81,6 +83,19 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.11</version>
+        </dependency>
+
+        <!--SpringDataES依赖-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+
+        <!-- elasticsearch -->
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>${elasticsearch.version}</version>
         </dependency>
     </dependencies>
 </project>

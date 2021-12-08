@@ -10,9 +10,13 @@ import com.alibaba.otter.canal.protocol.CanalEntry.RowChange;
 import com.alibaba.otter.canal.protocol.CanalEntry.RowData;
 import com.alibaba.otter.canal.protocol.Message;
 import lombok.extern.slf4j.Slf4j;
+import org.cxs.demo.canal.service.SyncElasticsearchService;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.stereotype.Service;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -24,13 +28,16 @@ import java.util.List;
  * @date 2021/12/3 16:01
  **/
 @Slf4j
-@Service
-public class CanalClientRunner implements ApplicationRunner {
+@Component
+@Order
+public class CanalClientRunner implements ApplicationRunner, InitializingBean {
+
+    @Autowired
+    private SyncElasticsearchService syncElasticsearchService;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
         log.info(" start canal client listen ......");
-
         // 创建链接
         CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(AddressUtils.getHostIp(),
                 11111), "example", "canal", "123456");
@@ -47,9 +54,9 @@ public class CanalClientRunner implements ApplicationRunner {
                 int size = message.getEntries().size();
                 if (batchId == -1 || size == 0) {
                     emptyCount++;
-                    log.info("empty count : " + emptyCount);
+                    // log.info("empty count : " + emptyCount);
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(2000);
                     } catch (InterruptedException e) {
 
                     }
@@ -59,7 +66,7 @@ public class CanalClientRunner implements ApplicationRunner {
                     printEntry(message.getEntries());
 
                     // TODO 同步mysql数据到ES中业务
-
+                    syncElasticsearchService.syncDemo01(message.getEntries());
                 }
 
                 connector.ack(batchId); // 提交确认
@@ -114,5 +121,10 @@ public class CanalClientRunner implements ApplicationRunner {
         for (CanalEntry.Column column : columns) {
             log.info(column.getName() + " : " + column.getValue() + "    update=" + column.getUpdated());
         }
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+
     }
 }
