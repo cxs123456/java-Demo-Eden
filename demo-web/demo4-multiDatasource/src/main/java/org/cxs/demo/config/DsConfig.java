@@ -4,6 +4,7 @@ import com.baomidou.dynamic.datasource.provider.AbstractJdbcDataSourceProvider;
 import com.baomidou.dynamic.datasource.provider.DynamicDataSourceProvider;
 import com.baomidou.dynamic.datasource.spring.boot.autoconfigure.DataSourceProperty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -22,11 +23,19 @@ import java.util.Map;
  **/
 @Primary
 @Configuration
+@EnableConfigurationProperties(BaseDsProperties.class)
 public class DsConfig {
 
     @Autowired
     private BaseDsProperties defaultDsConfig;
 
+    /**
+     * 自定义数据源
+     * 可以通过实现AbstractDataSourceProvider类来自定义加载数据源来源的方式。
+     * mybatis plus 默认是通过YmlDynamicDataSourceProvider实现了读取yml文件配置来初始化数据源的方式。
+     *
+     * @return
+     */
     @Bean
     public DynamicDataSourceProvider jdbcDynamicDataSourceProvider() {
         return new AbstractJdbcDataSourceProvider(defaultDsConfig.getDriverClassName(),

@@ -16,10 +16,11 @@
     <description>Demo project for Spring Boot</description>
 
     <modules>
-        <module>demo-springSecurity</module>
-        <module>demo-activiti7</module>
-        <module>demo-multiDatasource</module>
-        <module>demo-canal</module>
+        <module>demo1-springSecurity</module>
+        <module>demo2-activiti7</module>
+        <module>demo3-canal</module>
+        <module>demo4-multiDatasource</module>
+        <module>demo5-drools</module>
     </modules>
 
     <properties>

@@ -75,14 +75,14 @@ mybatis-plus多数据源 方案，引用`dynamic-datasource-spring-boot-starter`
 4. 刷新权限  `FLUSH PRIVILEGES;`
 
 **重点：参考文档安装canal的ClientAdapter工程，提供了同步ES的客户端适配器工程**  
-[canal-adapter](https://github.com/alibaba/canal/wiki/ClientAdapter)
+[canal-adapter](https://github.com/alibaba/canal/wiki/ClientAdaprter)
 
 > 参考链接  
 > [GitHub上canal项目地址](https://github.com/alibaba/canal)，开发就参考GitHub上项目文档  
 > [基于Canal的数据同步](https://www.cnblogs.com/xuxiaojian/p/14408862.html)  
 > [Windows安装canal详细步骤](https://blog.csdn.net/u014386444/article/details/105874639)  
 > https://blog.csdn.net/yehongzhi1994/article/details/107880162
-
+> [Canal-adapter1.1.4集成Elasticsearch7.8.0排坑指南及在本地环境运行canal-adapter项目](https://zhuanlan.zhihu.com/p/355162399)
 
 
 

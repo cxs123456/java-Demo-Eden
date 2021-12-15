@@ -13,6 +13,7 @@ public class AuthApplication {
 
     @Bean(name = "restTemplate")
     public RestTemplate restTemplate() {
+
         return new RestTemplate();
     }
 

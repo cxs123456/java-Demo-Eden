@@ -46,20 +46,26 @@ public class DSController {
     @Autowired
     private DynamicDatasourceInstanceMapper instanceMapper;
 
+    /**
+     * 查询 当前加载的数据源列表
+     *
+     * @return
+     * @throws InterruptedException
+     */
     @GetMapping("list")
     public Set<String> now() throws InterruptedException {
         DynamicRoutingDataSource ds = (DynamicRoutingDataSource) dataSource;
         DynamicDatasourceInstance dynamicDatasourceInstance = instanceMapper.selectById(1);
 
-        List<Map<String, Object>> maps0 = jdbcTemplate.queryForList("select database()");
-        System.out.println(Thread.currentThread().getName() + " 000当前使用的数据库： " + maps0);
-        Thread.sleep(2000);
-        List<Map<String, Object>> maps1 = jdbcTemplate.queryForList("select database()");
-        System.out.println(Thread.currentThread().getName() + " 111当前使用的数据库： " + maps0);
-
         return ds.getDataSources().keySet();
     }
 
+    /**
+     * 添加数据源
+     *
+     * @param dataSourceProperty
+     * @return
+     */
     @PostMapping("add")
     public Set<String> add(@RequestBody DataSourceProperty dataSourceProperty) {
         DynamicRoutingDataSource ds = (DynamicRoutingDataSource) dataSource;
@@ -87,7 +93,7 @@ public class DSController {
     }
 
     /**
-     * 根据
+     * 根据 请求头中 datasource 属性值来切换当前请求线程的数据源，执行sql
      *
      * @param datasource
      * @param sqlReq
@@ -129,6 +135,7 @@ public class DSController {
     }
 
     /**
+     * 多数据源切换示例： 代码中 手动切换多个数据源
      * 手动切换数据源 A数据源-->B数据源-->C数据源-->A数据源
      */
     @PostMapping("multiExec")
@@ -142,7 +149,7 @@ public class DSController {
             DynamicDataSourceContextHolder.push("test");
             List<Map<String, Object>> maps1 = jdbcTemplate.queryForList("select database()");
             System.out.println(Thread.currentThread().getName() + " 111当前使用的数据库： " + maps1);
-            Thread.sleep(5000);
+            Thread.sleep(3000);
 
             DynamicDataSourceContextHolder.poll();
 
