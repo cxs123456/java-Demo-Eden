@@ -1,0 +1,59 @@
+package rules;
+
+import org.cxs.demo.drools.entity.Order;
+
+// 订单积分规则
+/**
+    1.100元以下，不加分
+    2.100-500元，加100分
+    3.500-1000元，加500分
+    3.1000元以上，加1000分
+**/
+
+
+rule "score_1"
+    when
+        //eval(true)
+        //工作内存中必须存在Order这种类的Fact对象（事实对象）---类型约束
+        //Order对象中属性amount<100 --- 属性约束
+        $order:Order(amount<100);
+    then
+        $order.setScore(0);
+        System.out.println("触发规则1：100元以下，不加分");
+end
+
+rule "score_2"
+    when
+        $order:Order(amount>=100 && amount<500);
+    then
+        $order.setScore(100);
+        System.out.println("触发规则2：100-500元，加100分");
+end
+
+rule "score_3"
+
+    when
+        $order:Order(amount>=500 && amount<1000);
+    then
+        $order.setScore(500);
+        System.out.println("触发规则3：500-1000元，加500分");
+end
+
+rule "score_4"
+    when
+        $order:Order(amount>=1000);
+    then
+        $order.setScore(1000);
+        System.out.println("触发规则4：1000元以上，加1000分");
+end
+
+rule "score_5"
+    when
+        $order:Order(amount>=1000);
+    then
+        // $order.setScore(1000);
+        $order.setAmount(0);
+        update($order);// 更新数据，导致相关的规则会重新匹配
+
+        System.out.println("触发规则5：1000元以上，更新金额0，触发规则1");
+end
