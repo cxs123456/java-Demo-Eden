@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,7 +77,25 @@ public class DemoTests {
         a ^= b;
         System.out.println(a);
         System.out.println(b);
+        HashMap map = new HashMap<String, String>();
+        map.get("");
     }
 
 
+    @Test
+    public void testAA() throws InterruptedException {
+
+        for (int i = 0; i < 10; i++) {
+            Thread.sleep(1000L);
+            System.out.printf("\r当前序号i=%d", i);
+        }
+
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        for (int i = 0; i < 10; i++) {
+            Thread.sleep(1000L);
+            System.out.printf("\r当前序号i=%d", i);
+        }
+    }
 }
