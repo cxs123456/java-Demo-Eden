@@ -59,6 +59,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String permissions = "admin";
         //UserJwt userDetails = new UserJwt(username,user.getData().getPassword(),AuthorityUtils.commaSeparatedStringToAuthorityList(permissions));
         UserJwt userDetails = new UserJwt(username,pwd,AuthorityUtils.commaSeparatedStringToAuthorityList(permissions));
+        userDetails.setNickname("小鸟");
+        userDetails.setId("8789");
+        userDetails.setPhone("1320335756");
         return userDetails;
     }
 }

@@ -1,5 +1,6 @@
 package org.cxs.auth.config;
 
+import org.cxs.auth.util.UserJwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.bootstrap.encrypt.KeyProperties;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +9,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -19,9 +21,7 @@ import org.springframework.security.oauth2.provider.approval.ApprovalStoreUserAp
 import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
-import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
-import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
@@ -30,7 +30,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.KeyPair;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Configuration
@@ -44,8 +47,8 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
     // spring Security配置 OAuth2 授权认证管理器
     @Autowired
     private AuthenticationManager authenticationManager;
-    // @Autowired
-    // private CustomUserAuthenticationConverter customUserAuthenticationConverter;
+    @Autowired
+    private CustomUserAuthenticationConverter customUserAuthenticationConverter;
     // @Autowired
     // private AuthorizationServerTokenServices authorizationServerTokenServices;
 
@@ -104,31 +107,31 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
         // 密码模式必须配置，使用spring security 认证管理器
         endpoints.authenticationManager(authenticationManager);
 
-
         // 这里使用客户端jwt token，也可以内存存储token,也可以使用redis和数据库
-        endpoints.tokenStore(tokenStore());//令牌存储
+        // endpoints.tokenStore(tokenStore());//令牌存储
         endpoints.tokenServices(authorizationServerTokenServices());
         endpoints.accessTokenConverter(jwtAccessTokenConverter());
         // 密码模式必须配置，用户信息service
         // endpoints.userDetailsService(userDetailsService);
         // endpoints.setClientDetailsService(clientDetailsService);
-        endpoints.userApprovalHandler(userApprovalHandler());
+        //endpoints.userApprovalHandler(userApprovalHandler());
         endpoints.allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);
         // 可以给token多添加数据
-        // endpoints.tokenEnhancer(new TokenEnhancer() {
-        //     @Override
-        //     public OAuth2AccessToken enhance(OAuth2AccessToken oAuth2AccessToken, OAuth2Authentication oAuth2Authentication) {
-        //         //在返回token的时候可以加上一些自定义数据
-        //         UserJwt userJwt = (UserJwt) oAuth2Authentication.getPrincipal();// 获取用户信息
-        //         DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) oAuth2AccessToken;
-        //         Map<String, Object> map = new LinkedHashMap<>();
-        //         map.put("nickname", userJwt.getId());
-        //         map.put("id", userJwt.getId());
-        //         map.put("phone", userJwt.getPhone());
-        //         token.setAdditionalInformation(map);
-        //         return token;
-        //     }
-        // });
+        // 将增强的token设置到增强链中
+        // TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
+        // enhancerChain.setTokenEnhancers(Stream.<TokenEnhancer>of((oAuth2AccessToken, oAuth2Authentication) -> {
+        //     //在返回token的时候可以加上一些自定义数据
+        //     UserJwt userJwt = (UserJwt) oAuth2Authentication.getPrincipal();// 获取用户信息
+        //     DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) oAuth2AccessToken;
+        //     Map<String, Object> map = new LinkedHashMap<>();
+        //     map.put("nickname", userJwt.getId());
+        //     map.put("id", userJwt.getId());
+        //     map.put("phone", userJwt.getPhone());
+        //     map.put("zzzz", "sdfdsf");
+        //     token.setAdditionalInformation(map);
+        //     return token;
+        // }, jwtAccessTokenConverter()).collect(Collectors.toList()));
+        // endpoints.tokenEnhancer(enhancerChain);
 
     }
 
@@ -245,9 +248,22 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
         defaultTokenServices.setSupportRefreshToken(true); // 是否开启令牌刷新
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setClientDetailsService(clientDetailsService);
-        // 针对jwt令牌的添加
-        defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter());
-
+        // 针对 jwt令牌的添加
+        // defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter());
+        TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
+        enhancerChain.setTokenEnhancers(Stream.<TokenEnhancer>of((oAuth2AccessToken, oAuth2Authentication) -> {
+            // 在返回 token 中加上一些自定义数据，在jwt中解析也会得到
+            UserJwt userJwt = (UserJwt) oAuth2Authentication.getPrincipal();// 获取用户信息
+            DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) oAuth2AccessToken;
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("nickname", userJwt.getNickname());
+            map.put("id", userJwt.getId());
+            map.put("phone", userJwt.getPhone());
+            map.put("zzzz", "sdfdsf");
+            token.setAdditionalInformation(map);
+            return token;
+        }, jwtAccessTokenConverter()).collect(Collectors.toList()));
+        defaultTokenServices.setTokenEnhancer(enhancerChain);
         // 设置令牌有效时间（一般设置为2个小时）
         defaultTokenServices.setAccessTokenValiditySeconds(2 * 60 * 60); // access_token就是我们请求资源需要携带的令牌
         // 设置刷新令牌的有效时间

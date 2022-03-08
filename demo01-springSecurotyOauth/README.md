@@ -51,10 +51,13 @@ JWT，是TOKEN的一种数据格式(服务端和客户端进行通信的传递�
 2. 如果客户端直接请求 `/oauth/token` 接口（按照oauth2的密码模式传参），`loadUserByUsername(name)`也会调用2次，  
 重启应用时，第1次调用传参 name 为 客户端client_id，再次调用的是 username。
 
+
 > 原因： 
 > 主要是2个配置文件(`WebSecurityConfig`和`AuthorizationServerConfig`)的加载顺序，去掉 AuthorizationServerConfig 的`@Order(-1)`注解;
 > AuthorizationServerConfig最先配置，AuthorizationServerConfig 必须最后注入到spring容器中
-> 认证服务 想要访问本服务其他api，也需要配置 资源服务ResourceServerConfig
+> 认证服务 想要访问本服务其他api，也需要配置 资源服务ResourceServerConfig 
+> /oauth/token 返回的 json数据中，添加自定义数据？ 实现 new TokenEnhancer()，这种方式还会在返回的access_token jwt中 添加数据
+> /oauth/token 返回的 json数据中 access_token jwt中 添加自定义数据 ？ 实现 DefaultUserAuthenticationConverter类复写 convertUserAuthentication方法 
 > zzz
 
 ## 知识拓展

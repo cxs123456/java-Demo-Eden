@@ -7,6 +7,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
+import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.Map;
 /**
  * JWT中，需要在token中携带额外的信息
  */
-//@Component
+@Component
 public class CustomUserAuthenticationConverter extends DefaultUserAuthenticationConverter {
 
     @Autowired
