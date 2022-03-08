@@ -1,12 +1,15 @@
 package org.cxs.auth.config;
 
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 
-// @Configuration
-// @EnableResourceServer
+@Configuration
+@EnableResourceServer
 // //开启方法上的PreAuthorize注解
-// @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     //公钥
@@ -43,8 +46,8 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         //所有请求必须认证通过
         http.authorizeRequests()
                 //下边的路径放行
-                .antMatchers(
-                        "/demo/anyone") //配置地址放行
+                //配置地址放行
+                .antMatchers("/demo/anyone")
                 .permitAll()
                 .anyRequest()
                 .authenticated();    //其他地址需要认证授权

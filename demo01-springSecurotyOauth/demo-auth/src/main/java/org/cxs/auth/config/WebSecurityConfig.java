@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,14 +17,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Configuration
 @EnableWebSecurity
 @AutoConfigureAfter(AuthorizationServerConfig.class)
+@Order
 class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserDetailsService userDetailsService;
-
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
         // 设置用户详情服务
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
         //也可以在内存中创建用户并为密码加密
         // auth.inMemoryAuthentication()
         //         .withUser("user").password(passwordEncoder().encode("123")).roles("USER")
@@ -87,16 +90,6 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     // protected void configure(AuthenticationManagerBuilder auth) {
     //     auth.authenticationProvider(customAuthenticationProvider());
     // }
-
-    /***
-     * 采用BCryptPasswordEncoder对密码进行编码,
-     * websecurity用户密码和认证服务器客户端密码都需要加密算法
-     * @return
-     */
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
 
 }

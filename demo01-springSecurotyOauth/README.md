@@ -54,6 +54,7 @@ JWT，是TOKEN的一种数据格式(服务端和客户端进行通信的传递�
 > 原因： 
 > 主要是2个配置文件(`WebSecurityConfig`和`AuthorizationServerConfig`)的加载顺序，去掉 AuthorizationServerConfig 的`@Order(-1)`注解;
 > AuthorizationServerConfig最先配置，AuthorizationServerConfig 必须最后注入到spring容器中
+> 认证服务 想要访问本服务其他api，也需要配置 资源服务ResourceServerConfig
 > zzz
 
 ## 知识拓展
@@ -82,7 +83,7 @@ bearer 授权：`Authorization:Bearer token`
 1.创建类继承`ResourceServerConfigurerAdapter` 覆写 2 个 configure 配置方法，配置`JwtTokenStore`、`JwtAccessTokenConverter`2个类(用于访问jwt)。  
 
 > 引用  
-> [基于 Spring Security Oauth2 的 SSO 单点登录+JWT 权限控制实践](https://www.v2ex.com/t/561649)  
+> [基于 Spring Security Oauth2 的 SSO 单点登录+JWT 权限控制实践](https://blog.csdn.net/Vermont_/article/details/116422782)  
 > [spring官网Spring Boot and OAuth2](https://spring.io/guides/tutorials/spring-boot-oauth2/)  
 > [spring官网Spring Security OAuth](https://spring.io/projects/spring-security-oauth#learn)  
 > [github文档](https://github.com/spring-projects/spring-security/wiki/OAuth-2.0-Migration-Guide)  

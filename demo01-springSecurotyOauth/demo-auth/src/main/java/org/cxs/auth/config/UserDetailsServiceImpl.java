@@ -1,6 +1,7 @@
 package org.cxs.auth.config;
 
 import org.cxs.auth.util.UserJwt;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,6 +15,8 @@ import org.springframework.util.StringUtils;
  */
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     // @Autowired
     // ClientDetailsService clientDetailsService;
@@ -48,7 +51,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return null;
         }
         // 静态指定密码，以后改成通过name到数据库取
-        String pwd = new BCryptPasswordEncoder().encode("123");
+        String pwd = passwordEncoder.encode("123");
         // 调用feign
         //Result<com.changgou.user.pojo.User> user = userFeign.findById(username);
 

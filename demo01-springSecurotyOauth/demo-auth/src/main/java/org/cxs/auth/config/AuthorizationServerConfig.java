@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -39,14 +38,9 @@ import java.util.stream.Collectors;
 class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
     //公钥
     private static final String PUBLIC_KEY = "public.key";
-    //SpringSecurity 用户自定义授权认证类
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private ClientDetailsService clientDetailsService;
-    @Autowired
-    private UserDetailsService userDetailsService;
     // spring Security配置 OAuth2 授权认证管理器
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -54,6 +48,7 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
     // private CustomUserAuthenticationConverter customUserAuthenticationConverter;
     // @Autowired
     // private AuthorizationServerTokenServices authorizationServerTokenServices;
+
     /***
      * 客户端信息配置，指定客户端登录信息来源
      * 为了测试客户端与凭证存储在内存(生产应该用数据库来存储,oauth有标准数据库模板)
@@ -65,7 +60,7 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
         // 使用内存存储2个客户端
         clients.inMemory()
                 .withClient("changgou")          //客户端id
-                .secret("123456")                      //秘钥
+                .secret(passwordEncoder().encode("123456"))                      //秘钥
                 .redirectUris("http://localhost")       //重定向地址
                 .accessTokenValiditySeconds(6000)          //访问令牌有效期
                 .refreshTokenValiditySeconds(9000)         //刷新令牌有效期
@@ -81,12 +76,12 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
                 .autoApprove(true)  //自动确认授权
                 .and() //
                 .withClient("web")
-                .secret(passwordEncoder.encode("123456"))
+                .secret(passwordEncoder().encode("123456"))
                 //.secret("123456")
                 .authorizedGrantTypes("password", "refresh_token")
                 .scopes("all")
                 .redirectUris("http://localhost")       //重定向地址
-                .resourceIds("app2")
+                //.resourceIds("app2")
                 .accessTokenValiditySeconds(6000)          //访问令牌有效期
                 .refreshTokenValiditySeconds(9000)         //刷新令牌有效期
                 //自动确认授权
@@ -146,7 +141,7 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
     @Override
     public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
         oauthServer.allowFormAuthenticationForClients() // 允许客户端表单认证
-                .passwordEncoder(passwordEncoder)
+                .passwordEncoder(passwordEncoder())
                 // 获取token请求不进行拦截
                 .tokenKeyAccess("permitAll()")
                 // 通过验证返回token信息
@@ -230,9 +225,10 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
                         keyProperties().getKeyStore().getPassword().toCharArray());   //证书密码 changgou
         // 对称加密算法 RSA，设置jwt密钥
         converter.setKeyPair(keyPair);
-        // 对称加密算法 HMAC，设置jwt密钥
+        // 非对称加密算法 HMAC，设置jwt密钥
         // converter.setSigningKey("123456");
         // converter.setVerifier(new MacSigner("123456"));
+        // converter.setVerifierKey(getPubKey());
         //配置自定义的CustomUserAuthenticationConverter
         // DefaultAccessTokenConverter accessTokenConverter = (DefaultAccessTokenConverter) converter.getAccessTokenConverter();
         // accessTokenConverter.setUserTokenConverter(customUserAuthenticationConverter);
@@ -258,6 +254,16 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
         defaultTokenServices.setRefreshTokenValiditySeconds(259200); // 3天
 
         return defaultTokenServices;
+    }
+
+    /***
+     * 采用BCryptPasswordEncoder对密码进行编码,
+     * websecurity用户密码和认证服务器客户端密码都需要加密算法
+     * @return
+     */
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     /**
