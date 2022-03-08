@@ -48,9 +48,12 @@ JWT，是TOKEN的一种数据格式(服务端和客户端进行通信的传递�
 **问题描述：**
 
 1. 客户端 post 请求 `/auth/login` 接口，再服务内部RestTemplate调用 `/oauth/token`，`UserDetailsService.loadUserByUsername(name)` 方法会被调用2次，第1次调用传参 name 为 clientId，第2次传参 name 为 客户端输入的 username。
-2. 如果客户端直接请求 `/oauth/token` 接口（按照oauth2的密码模式传参），`loadUserByUsername(name)`只会调用1次，传参 name 为 客户端输入的 username。
+2. 如果客户端直接请求 `/oauth/token` 接口（按照oauth2的密码模式传参），`loadUserByUsername(name)`也会调用2次，  
+重启应用时，第1次调用传参 name 为 客户端client_id，再次调用的是 username。
 
-> 原因：  
+> 原因： 
+> 主要是2个配置文件(`WebSecurityConfig`和`AuthorizationServerConfig`)的加载顺序，去掉 AuthorizationServerConfig 的`@Order(-1)`注解;
+> AuthorizationServerConfig最先配置，AuthorizationServerConfig 必须最后注入到spring容器中
 > zzz
 
 ## 知识拓展

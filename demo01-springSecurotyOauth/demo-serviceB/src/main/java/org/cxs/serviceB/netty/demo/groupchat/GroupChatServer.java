@@ -44,7 +44,7 @@ public class GroupChatServer {
 
             //循环处理
             while (true) {
-
+                // 该方法会阻塞，直到有事件
                 int count = selector.select();
                 if (count > 0) {//有事件处理
 
@@ -76,7 +76,7 @@ public class GroupChatServer {
                     }
 
                 } else {
-                    Thread.sleep(1000);
+                    // Thread.sleep(1000);// select() 会阻塞
                     System.out.println("等待....");
                 }
             }

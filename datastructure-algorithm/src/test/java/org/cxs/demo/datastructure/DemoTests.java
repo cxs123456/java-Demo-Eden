@@ -92,10 +92,21 @@ public class DemoTests {
 
     }
 
+
     public static void main(String[] args) throws InterruptedException {
-        for (int i = 0; i < 10; i++) {
-            Thread.sleep(1000L);
-            System.out.printf("\r当前序号i=%d", i);
-        }
+
+        System.out.println(16);
+
     }
+}
+
+class A {
+    static {
+        System.out.println("00000000");
+    }
+
+    public static String a = "aaaaaaaaaa";
+    public static final String b = "bbbbbbbbbb";
+    public static final A c = null;
+    public static final int d = 0;
 }
