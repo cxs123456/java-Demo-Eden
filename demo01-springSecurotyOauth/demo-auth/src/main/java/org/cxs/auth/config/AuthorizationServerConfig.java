@@ -15,12 +15,8 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
-import org.springframework.security.oauth2.provider.approval.ApprovalStoreUserApprovalHandler;
 import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
-import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
-import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
@@ -42,8 +38,8 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
     //公钥
     private static final String PUBLIC_KEY = "public.key";
 
-    @Autowired
-    private ClientDetailsService clientDetailsService;
+    // @Autowired
+    // private ClientDetailsService clientDetailsService;
     // spring Security配置 OAuth2 授权认证管理器
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -85,8 +81,9 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
                 .scopes("all")
                 .redirectUris("http://localhost")       //重定向地址
                 //.resourceIds("app2")
-                .accessTokenValiditySeconds(6000)          //访问令牌有效期
-                .refreshTokenValiditySeconds(9000)         //刷新令牌有效期
+                // 在AuthorizationServerTokenServices中设置了这里就可以注释掉
+                // .accessTokenValiditySeconds(6000)          //访问令牌有效期
+                // .refreshTokenValiditySeconds(9000)         //刷新令牌有效期
                 //自动确认授权
                 .autoApprove(true)
                 .and().build();
@@ -181,14 +178,14 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
         return jdbcClientDetailsService;
     }*/
 
-    @Bean
-    public UserApprovalHandler userApprovalHandler() {
-        ApprovalStoreUserApprovalHandler userApprovalHandler = new ApprovalStoreUserApprovalHandler();
-        userApprovalHandler.setApprovalStore(approvalStore());
-        userApprovalHandler.setClientDetailsService(this.clientDetailsService);
-        userApprovalHandler.setRequestFactory(new DefaultOAuth2RequestFactory(this.clientDetailsService));
-        return userApprovalHandler;
-    }
+    // @Bean
+    // public UserApprovalHandler userApprovalHandler() {
+    //     ApprovalStoreUserApprovalHandler userApprovalHandler = new ApprovalStoreUserApprovalHandler();
+    //     userApprovalHandler.setApprovalStore(approvalStore());
+    //     // userApprovalHandler.setClientDetailsService(this.clientDetailsService);
+    //     // userApprovalHandler.setRequestFactory(new DefaultOAuth2RequestFactory(this.clientDetailsService));
+    //     return userApprovalHandler;
+    // }
 
     @Bean
     public ApprovalStore approvalStore() {
@@ -228,9 +225,12 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
                         keyProperties().getKeyStore().getPassword().toCharArray());   //证书密码 changgou
         // 对称加密算法 RSA，设置jwt密钥
         converter.setKeyPair(keyPair);
-        // 非对称加密算法 HMAC，设置jwt密钥
+
+        // 对称加密算法 HMAC，设置jwt 密钥，签名和验证使用相同
         // converter.setSigningKey("123456");
+        // converter.setVerifierKey("123456");
         // converter.setVerifier(new MacSigner("123456"));
+        // 对称加密算法 RSA，设置验证的密钥为公钥，如果 setKeyPair(keyPair) 下面就不需要配置
         // converter.setVerifierKey(getPubKey());
         //配置自定义的CustomUserAuthenticationConverter
         // DefaultAccessTokenConverter accessTokenConverter = (DefaultAccessTokenConverter) converter.getAccessTokenConverter();
@@ -247,7 +247,7 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setSupportRefreshToken(true); // 是否开启令牌刷新
         defaultTokenServices.setTokenStore(tokenStore());
-        defaultTokenServices.setClientDetailsService(clientDetailsService);
+        // defaultTokenServices.setClientDetailsService(clientDetailsService);
         // 针对 jwt令牌的添加
         // defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter());
         TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
@@ -265,7 +265,10 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
         }, jwtAccessTokenConverter()).collect(Collectors.toList()));
         defaultTokenServices.setTokenEnhancer(enhancerChain);
         // 设置令牌有效时间（一般设置为2个小时）
+        // 如果前端觉得麻烦，那么直接设置0或者负数，永远不过期
+        // defaultTokenServices.setAccessTokenValiditySeconds(-1); // access_token就是我们请求资源需要携带的令牌
         defaultTokenServices.setAccessTokenValiditySeconds(2 * 60 * 60); // access_token就是我们请求资源需要携带的令牌
+
         // 设置刷新令牌的有效时间
         defaultTokenServices.setRefreshTokenValiditySeconds(259200); // 3天
 

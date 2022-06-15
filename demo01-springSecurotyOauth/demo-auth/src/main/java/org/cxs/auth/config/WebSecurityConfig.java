@@ -61,6 +61,7 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 // 限制基于Request请求访问
                 .authorizeRequests()
+                .antMatchers("/oauth/**", "/login/**", "/logout/**").permitAll()
                 // 配置地址放行 oauth/**接口对外开放
                 .antMatchers("/oauth/**").permitAll()
                 .antMatchers("/demo/anyone").permitAll()

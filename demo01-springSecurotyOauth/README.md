@@ -54,7 +54,7 @@ JWT，是TOKEN的一种数据格式(服务端和客户端进行通信的传递�
 
 > 原因： 
 > 主要是2个配置文件(`WebSecurityConfig`和`AuthorizationServerConfig`)的加载顺序，去掉 AuthorizationServerConfig 的`@Order(-1)`注解;
-> AuthorizationServerConfig最先配置，AuthorizationServerConfig 必须最后注入到spring容器中
+> AuthorizationServerConfig最先配置，WebSecurityConfig 必须最后注入到spring容器中
 > 认证服务 想要访问本服务其他api，也需要配置 资源服务ResourceServerConfig 
 > /oauth/token 返回的 json数据中，添加自定义数据？ 实现 new TokenEnhancer()，这种方式还会在返回的access_token jwt中 添加数据
 > /oauth/token 返回的 json数据中 access_token jwt中 添加自定义数据 ？ 实现 DefaultUserAuthenticationConverter类复写 convertUserAuthentication方法 
@@ -106,3 +106,14 @@ bearer 授权：`Authorization:Bearer token`
 ② 登录接口的url 默认是`/oauth/token`（无需自己开发，前端写死），该请求是向认证服务器申请令牌，按照密码模式的请求数据，   
 重点包含2个密码，1个是请求体的用户的 `username和password`，1个是请求头的 `http Basic认证 ` 中客户端应用的`clientId/clientSecret`。  
 ④⑤⑥ 和授权码模式的业务逻辑一致。token的生成有`username和password`参与。返回的令牌由前端放入请求头cookie中下次请求。  
+
+**密码授权请求参数**
+Post请求地址：http://localhost:9001/oauth/token  
+```shell
+    form-data 参数： 
+    grant_type：密码模式授权填写password 
+    username：账号 
+    password：密码 
+    
+    并且此链接需要使用 http Basic认证 。
+```
