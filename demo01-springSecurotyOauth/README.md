@@ -47,18 +47,21 @@ JWT，是TOKEN的一种数据格式(服务端和客户端进行通信的传递�
 
 **问题描述：**
 
-1. 客户端 post 请求 `/auth/login` 接口，再服务内部RestTemplate调用 `/oauth/token`，`UserDetailsService.loadUserByUsername(name)` 方法会被调用2次，第1次调用传参 name 为 clientId，第2次传参 name 为 客户端输入的 username。
+1. 客户端 post 请求 `/auth/login` 接口，再服务内部RestTemplate调用 `/oauth/token`，`UserDetailsService.loadUserByUsername(name)` 方法会被调用2次，
+第1次调用传参 name 为 clientId，第2次传参 name 为 客户端输入的 username。
 2. 如果客户端直接请求 `/oauth/token` 接口（按照oauth2的密码模式传参），`loadUserByUsername(name)`也会调用2次，  
 重启应用时，第1次调用传参 name 为 客户端client_id，再次调用的是 username。
-
-
-> 原因： 
+> **原因已发现如下：** 
 > 主要是2个配置文件(`WebSecurityConfig`和`AuthorizationServerConfig`)的加载顺序，去掉 AuthorizationServerConfig 的`@Order(-1)`注解;
 > AuthorizationServerConfig最先配置，WebSecurityConfig 必须最后注入到spring容器中
 > 认证服务 想要访问本服务其他api，也需要配置 资源服务ResourceServerConfig 
 > /oauth/token 返回的 json数据中，添加自定义数据？ 实现 new TokenEnhancer()，这种方式还会在返回的access_token jwt中 添加数据
 > /oauth/token 返回的 json数据中 access_token jwt中 添加自定义数据 ？ 实现 DefaultUserAuthenticationConverter类复写 convertUserAuthentication方法 
 > zzz
+
+**ResourceServerConfig 和 WebSecurityConfig**
+1. 如果已经配置 ResourceServerConfig.configure(HttpSecurity http)方法的请求授权配置，将会忽略 WebSecurityConfig.configure(HttpSecurity http)方法里的配置。
+2. 如果是单体应用ResourceServerConfig配置，WebSecurityConfig 配置都应该有，可以省略 WebSecurityConfig.configure(HttpSecurity http)方法。
 
 ## 知识拓展
 
@@ -90,7 +93,7 @@ bearer 授权：`Authorization:Bearer token`
 > [spring官网Spring Boot and OAuth2](https://spring.io/guides/tutorials/spring-boot-oauth2/)  
 > [spring官网Spring Security OAuth](https://spring.io/projects/spring-security-oauth#learn)  
 > [github文档](https://github.com/spring-projects/spring-security/wiki/OAuth-2.0-Migration-Guide)  
-
+https://github.com/spring-projects/spring-security/blob/5.4.x/samples/boot/
 
 ### 总结
 **授权码模式示例：微信认证的流程**  
@@ -117,3 +120,4 @@ Post请求地址：http://localhost:9001/oauth/token
     
     并且此链接需要使用 http Basic认证 。
 ```
+
