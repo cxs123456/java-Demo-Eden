@@ -7,6 +7,7 @@ import org.cxs.auth.util.AuthToken;
 import org.cxs.auth.util.CookieTools;
 import org.cxs.auth.util.TokenDecode;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
@@ -56,7 +57,9 @@ public class TokenFilter extends GenericFilterBean {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
-        if (SecurityContextHolder.getContext().getAuthentication().getDetails() instanceof OAuth2AuthenticationDetails) {
+        String token = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.isNotBlank(token) &&
+                SecurityContextHolder.getContext().getAuthentication() instanceof OAuth2Authentication) {
             OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
             OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) authentication.getDetails();
             String tokenValue = details.getTokenValue();
