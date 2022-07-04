@@ -7,7 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -37,12 +38,20 @@ import java.util.stream.Stream;
 class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
     //公钥
     private static final String PUBLIC_KEY = "public.key";
-
+    @Autowired
+    private UserDetailsService userDetailsService;
+    /**
+     * redis工厂，默认使用 lettue
+     */
+    // @Autowired
+    // private RedisConnectionFactory redisConnectionFactory;
     // @Autowired
     // private ClientDetailsService clientDetailsService;
     // spring Security配置 OAuth2 授权认证管理器
+    // @Autowired
+    // private AuthenticationManager authenticationManager;
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private AuthenticationConfiguration authenticationConfiguration;
     @Autowired
     private CustomUserAuthenticationConverter customUserAuthenticationConverter;
     // @Autowired
@@ -102,14 +111,14 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         // 密码模式必须配置，使用spring security 认证管理器
-        endpoints.authenticationManager(authenticationManager);
+        endpoints.authenticationManager(authenticationConfiguration.getAuthenticationManager());
 
         // 这里使用客户端jwt token，也可以内存存储token,也可以使用redis和数据库
         // endpoints.tokenStore(tokenStore());//令牌存储
         endpoints.tokenServices(authorizationServerTokenServices());
         endpoints.accessTokenConverter(jwtAccessTokenConverter());
         // 密码模式必须配置，用户信息service
-        // endpoints.userDetailsService(userDetailsService);
+        endpoints.userDetailsService(userDetailsService);
         // endpoints.setClientDetailsService(clientDetailsService);
         //endpoints.userApprovalHandler(userApprovalHandler());
         endpoints.allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);
@@ -205,6 +214,12 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
      */
     @Bean
     public TokenStore tokenStore() {
+        // 使用redis token可以服务器端续期
+        // RedisTokenStore redisTokenStore = new RedisTokenStore(redisConnectionFactory);
+
+        /* 如果使用 JwtTokenStore， jwt token是无状态的，信息都放在了JWT中，
+            如果修改了过期时间信息，那么JWT也就变了，所以这个时候最好用刷新令牌方案来续期token
+         */
         return new JwtTokenStore(jwtAccessTokenConverter());
     }
 
@@ -251,27 +266,43 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
         // 针对 jwt令牌的添加
         // defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter());
         TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
-        enhancerChain.setTokenEnhancers(Stream.<TokenEnhancer>of((oAuth2AccessToken, oAuth2Authentication) -> {
-            // 在返回 token 中加上一些自定义数据，在jwt中解析也会得到
-            UserJwt userJwt = (UserJwt) oAuth2Authentication.getPrincipal();// 获取用户信息
-            DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) oAuth2AccessToken;
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("nickname", userJwt.getNickname());
-            map.put("id", userJwt.getId());
-            map.put("phone", userJwt.getPhone());
-            map.put("zzzz", "sdfdsf");
-            token.setAdditionalInformation(map);
-            return token;
-        }, jwtAccessTokenConverter()).collect(Collectors.toList()));
+        enhancerChain.setTokenEnhancers(
+                Stream.<TokenEnhancer>of((oAuth2AccessToken, oAuth2Authentication) -> {
+                            DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) oAuth2AccessToken;
+                            // 在返回 token 中加上一些自定义数据，在jwt中解析也会得到
+                            if (oAuth2Authentication.getPrincipal() instanceof UserJwt) { // 密码模式生成的token
+                                UserJwt userJwt = (UserJwt) oAuth2Authentication.getPrincipal();// 获取用户信息
+
+                                Map<String, Object> map = new LinkedHashMap<>();
+                                map.put("nickname", userJwt.getNickname());
+                                map.put("id", userJwt.getId());
+                                map.put("phone", userJwt.getPhone());
+                                map.put("zzzz", "sdfdsf");
+                                token.setAdditionalInformation(map);
+                                return token;
+                            } else {// 刷新token
+                                String principal = (String) oAuth2Authentication.getPrincipal();
+                                UserJwt userJwt = (UserJwt) userDetailsService.loadUserByUsername(principal);
+                                Map<String, Object> map = new LinkedHashMap<>();
+                                map.put("nickname", userJwt.getNickname());
+                                map.put("id", userJwt.getId());
+                                map.put("phone", userJwt.getPhone());
+                                map.put("zzzz", "sdfdsf");
+                                token.setAdditionalInformation(map);
+                                return token;
+                            }
+                        }, jwtAccessTokenConverter()
+                ).collect(Collectors.toList()));
         defaultTokenServices.setTokenEnhancer(enhancerChain);
         // 设置令牌有效时间（一般设置为2个小时）
         // 如果前端觉得麻烦，那么直接设置0或者负数，永远不过期
         // defaultTokenServices.setAccessTokenValiditySeconds(-1); // access_token就是我们请求资源需要携带的令牌
-        defaultTokenServices.setAccessTokenValiditySeconds(2 * 60 * 60); // access_token就是我们请求资源需要携带的令牌
+        //defaultTokenServices.setAccessTokenValiditySeconds(2 * 60 * 60); // access_token就是我们请求资源需要携带的令牌
+        defaultTokenServices.setAccessTokenValiditySeconds(60); // access_token就是我们请求资源需要携带的令牌
 
         // 设置刷新令牌的有效时间
-        defaultTokenServices.setRefreshTokenValiditySeconds(259200); // 3天
-
+        //defaultTokenServices.setRefreshTokenValiditySeconds(259200); // 3天
+        defaultTokenServices.setRefreshTokenValiditySeconds(60); // 3天
         return defaultTokenServices;
     }
 

@@ -63,6 +63,7 @@ public class AuthController {
 //                       false); // 是否用http
             CookieTools.setCookie(request, response, "Authorization", authToken.getAccessToken());
             CookieTools.setCookie(request, response, "cuname", username);
+            CookieTools.setCookie(request, response, "refresh_token", authToken.getRefreshToken());
             return new Result(true, StatusCode.OK, "登录成功", authToken);
         }else {
             return new Result(true, StatusCode.LOGINERROR, "用户名或密码错误");

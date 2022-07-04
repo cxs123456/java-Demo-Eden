@@ -146,8 +146,8 @@ public class CookieTools {
                 cookie.setMaxAge(cookieMaxage);
             }
             if (null != request) {// 设置域名的cookie
-//                String domainName = getDomainName(request);
-                String domainName = "itheima.net";
+                String domainName = getDomainName(request);
+                // String domainName = "itheima.net";
                 if (!"localhost".equals(domainName)) {
                     cookie.setDomain(domainName);
                 }

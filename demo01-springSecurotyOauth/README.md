@@ -112,12 +112,36 @@ https://github.com/spring-projects/spring-security/blob/5.4.x/samples/boot/
 
 **密码授权请求参数**
 Post请求地址：http://localhost:9001/oauth/token  
-```shell
-    form-data 参数： 
+```yaml
+    form-data 参数
     grant_type：密码模式授权填写password 
     username：账号 
     password：密码 
     
     并且此链接需要使用 http Basic认证 。
 ```
+** 刷新令牌**
+Post请求地址：http://localhost:9001/oauth/token 
+```yaml
+    form-data 参数
+    grant_type： 固定为 refresh_token 
+    refresh_token：刷新令牌（注意不是access_token，而是refresh_token）  
 
+```
+
+
+## jwt token 服务端续期解决方案
+
+**方法1：使用 刷新token**
+①后端在登录接口逻辑中，将jwt token和refresh token放到前端cookie中。  
+②前端登录后返回的jwt token和refresh token放入cookie中，每次请求从cookie中获取jwt token放在请求头 Authorization:bearer 里面。  
+③后端编写个 TokenFilter 中 response过滤的时候检查 jwt token 过期时间是否在10分钟以内的时候，调用refresh token 的接口生成新的token放入cookie中。 
+
+**方法2：修改 token过期时间**
+①后端在登录接口逻辑中，将jwt token放到前端cookie中。  
+②前端登录后返回的jwt token放入cookie中，每次请求从cookie中获取jwt token放在请求头 Authorization:bearer 里面。  
+③后端编写个 TokenFilter 中 response过滤的时候检查 jwt token 过期时间是否在10分钟以内的时候，修改token过期时间并且重新生成新的token放入cookie中。 
+
+> jwt token的payload中 exp 的值是时间戳，exp比较当前时间的大小判断token是否过期  
+> jwt token 前端续期解决方案：axios拦截器每次检查过期时间是否到了，就调用刷新token重新生成代替cookie中旧了token
+> 参考： https://yunyanchengyu.blog.csdn.net/article/details/121349989
